@@ -21,6 +21,22 @@ class ViewController: NSViewController {
         // Update the view, if already loaded.
         }
     }
+    
+    @IBAction func urlEntered(_ sender: NSTextField) {
+        
+    }
+    
+    @IBAction func navigationClicked(_ sender: NSSegmentedControl) {
+        
+    }
+    
+    @IBAction func adjustRows(_ sender: NSSegmentedControl) {
+        
+    }
+    
+    @IBAction func adjustColumns(_ sender: NSSegmentedControl) {
+    
+    }
 
 
 }
