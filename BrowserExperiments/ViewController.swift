@@ -9,9 +9,10 @@
 import Cocoa
 import WebKit
 
-class ViewController: NSViewController, WKNavigationDelegate {
+class ViewController: NSViewController, WKNavigationDelegate, NSGestureRecognizerDelegate {
     
     var rows: NSStackView!
+    var selectedWebView: WKWebView!
 
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -134,9 +135,61 @@ class ViewController: NSViewController, WKNavigationDelegate {
         webView.wantsLayer = true
         webView.load(URLRequest(url: URL(string: "https://www.apple.com")!))
         
+        // 2 ways to disambiguate clicks
+        
+//        let recognizer = NSClickGestureRecognizer(target: self, action: #selector(webViewClicked))
+//        recognizer.numberOfClicksRequired = 2
+//        webView.addGestureRecognizer(recognizer)
+        
+        
+        let recognizer = NSClickGestureRecognizer(target: self, action: #selector(webViewClicked))
+        recognizer.delegate = self
+        webView.addGestureRecognizer(recognizer)
+        
+        if selectedWebView == nil {
+            select(webView: webView)
+        }
+        
         return webView
+    }
+    
+    func select(webView: WKWebView) {
+        
+        selectedWebView = webView
+        selectedWebView.layer?.borderColor = NSColor.blue.cgColor
+        selectedWebView.layer?.borderWidth = 4
+    }
+    
+    func webViewClicked(recognizer: NSClickGestureRecognizer) {
+        //get the web view that triggered this method
+        guard let newSelectedWebView = recognizer.view as? WKWebView else { return }
+        
+        //deselect the currently selected web view if there is one
+        if let selected = selectedWebView {
+            selected.layer?.borderWidth = 0
+        }
+        
+        //select one
+        select(webView: newSelectedWebView)
+    }
+    
+    func gestureRecognizer(_ gestureRecognizer: NSGestureRecognizer, shouldAttemptToRecognizeWith event: NSEvent) -> Bool {
+        if gestureRecognizer.view == selectedWebView {
+            return false
+        } else {
+            return true
+        }
     }
 
 
 }
+
+
+
+
+
+
+
+
+
 
