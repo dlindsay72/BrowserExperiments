@@ -19,7 +19,7 @@ extension NSTouchBarItemIdentifier {
     static let adjustCols = NSTouchBarItemIdentifier("com.hackingwithswift.project4.adjustCols")
 }
 
-class ViewController: NSViewController, WKNavigationDelegate, NSGestureRecognizerDelegate, NSTouchBarDelegate {
+class ViewController: NSViewController, WKNavigationDelegate, NSGestureRecognizerDelegate, NSTouchBarDelegate, NSSharingServicePickerTouchBarItemDelegate {
     
     var rows: NSStackView!
     var selectedWebView: WKWebView!
@@ -223,6 +223,7 @@ class ViewController: NSViewController, WKNavigationDelegate, NSGestureRecognize
         if let windowController = view.window?.windowController as? WindowController {
             windowController.addressEntry.stringValue = webView.url?.absoluteString ?? ""
         }
+        
     }
     
     @available(OSX 10.12.2, *)
@@ -236,6 +237,48 @@ class ViewController: NSViewController, WKNavigationDelegate, NSGestureRecognize
             
             customTouchBarItem.view = button
             return customTouchBarItem
+        case NSTouchBarItemIdentifier.navigation:
+            //load the back and forward imaages
+            let back = NSImage(named: NSImageNameTouchBarGoBackTemplate)!
+            let forward = NSImage(named: NSImageNameTouchBarGoForwardTemplate)!
+            
+            //create a segmented control out of them, calling our navigationClicked method
+            let segmentedControl = NSSegmentedControl(images: [back, forward], trackingMode: .momentary, target: self, action: #selector(navigationClicked))
+            
+            //wrap that inside a Touch BAr item
+            let customTouchBarItem = NSCustomTouchBarItem(identifier: identifier)
+            customTouchBarItem.view = segmentedControl
+            
+            //send it back
+            return customTouchBarItem
+        case NSTouchBarItemIdentifier.sharingPicker:
+            let picker = NSSharingServicePickerTouchBarItem(identifier: identifier)
+            picker.delegate = self
+            
+            return picker
+        case NSTouchBarItemIdentifier.adjustRows:
+            let control = NSSegmentedControl(labels: ["Add Row", "Remove Row"], trackingMode: .momentaryAccelerator, target: self, action: #selector(adjustRows))
+            let customTouchBarItem = NSCustomTouchBarItem(identifier: identifier)
+            customTouchBarItem.customizationLabel = "Rows"
+            customTouchBarItem.view = control
+            
+            return customTouchBarItem
+        case NSTouchBarItemIdentifier.adjustCols:
+            let control = NSSegmentedControl(labels: ["Add Column", "Remove Column"], trackingMode: .momentaryAccelerator, target: self, action: #selector(adjustColumns))
+            let customTouchBarItem = NSCustomTouchBarItem(identifier: identifier)
+            customTouchBarItem.customizationLabel = "Columns"
+            customTouchBarItem.view = control
+            
+            return customTouchBarItem
+        case NSTouchBarItemIdentifier.adjustGrid:
+            let popOver = NSPopoverTouchBarItem(identifier: identifier)
+            popOver.collapsedRepresentationLabel = "Grid"
+            popOver.customizationLabel = "Adjust Grid"
+            popOver.popoverTouchBar = NSTouchBar()
+            popOver.popoverTouchBar.delegate = self
+            popOver.popoverTouchBar.defaultItemIdentifiers = [.adjustRows, .adjustCols]
+            
+            return popOver
         default:
             return nil
         }
@@ -272,6 +315,14 @@ class ViewController: NSViewController, WKNavigationDelegate, NSGestureRecognize
         if let windowController = view.window?.windowController as? WindowController {
             windowController.window?.makeFirstResponder(windowController.addressEntry)
         }
+    }
+    @available(OSX 10.12.2, *)
+    func items(for pickerTouchBarItem: NSSharingServicePickerTouchBarItem) -> [Any] {
+        
+        guard let webView = selectedWebView else { return [] }
+        guard let url = webView.url?.absoluteString else { return [] }
+        
+        return [url]
     }
 
 
