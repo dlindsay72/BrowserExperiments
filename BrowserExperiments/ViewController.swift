@@ -37,6 +37,8 @@ class ViewController: NSViewController, WKNavigationDelegate, NSGestureRecognize
         //4 - add this column to the rows stackView
         rows.addArrangedSubview(column)
     }
+    
+    
 
     override var representedObject: Any? {
         didSet {
@@ -46,10 +48,29 @@ class ViewController: NSViewController, WKNavigationDelegate, NSGestureRecognize
     
     @IBAction func urlEntered(_ sender: NSTextField) {
         
+        //bail out if we don't have a web view selected
+        guard let selected = selectedWebView else { return }
+        
+        //attempt to convert the user's text into a URL
+        if let url = URL(string: sender.stringValue) {
+            
+            // it worked - load it up
+            selected.load(URLRequest(url: url))
+        }
     }
     
     @IBAction func navigationClicked(_ sender: NSSegmentedControl) {
         
+        // make sure we have a web view selected
+        guard let selected = selectedWebView else { return }
+        
+        if sender.selectedSegment == 0 {
+            //back was tapped
+            selected.goBack()
+        } else {
+            //forward was tapped
+            selected.goForward()
+        }
     }
     
     @IBAction func adjustRows(_ sender: NSSegmentedControl) {
@@ -158,6 +179,10 @@ class ViewController: NSViewController, WKNavigationDelegate, NSGestureRecognize
         selectedWebView = webView
         selectedWebView.layer?.borderColor = NSColor.blue.cgColor
         selectedWebView.layer?.borderWidth = 4
+        
+        if let WindowController = view.window?.windowController as? WindowController {
+            WindowController.addressEntry.stringValue = selectedWebView.url?.absoluteString ?? ""
+        }
     }
     
     func webViewClicked(recognizer: NSClickGestureRecognizer) {
@@ -178,6 +203,15 @@ class ViewController: NSViewController, WKNavigationDelegate, NSGestureRecognize
             return false
         } else {
             return true
+        }
+    }
+    
+    func webView(_ webView: WKWebView, didCommit navigation: WKNavigation!) {
+        
+        guard webView == selectedWebView else { return }
+        
+        if let windowController = view.window?.windowController as? WindowController {
+            windowController.addressEntry.stringValue = webView.url?.absoluteString ?? ""
         }
     }
 
