@@ -789,6 +789,9 @@
                                 <toolbarItem reference="qva-qi-XuE"/>
                             </defaultToolbarItems>
                         </toolbar>
+                        <connections>
+                            <outlet property="delegate" destination="B8D-0N-5wS" id="MkL-9Z-lYb"/>
+                        </connections>
                     </window>
                     <connections>
                         <outlet property="addressEntry" destination="ULu-Z1-ivn" id="HGS-Qh-70T"/>

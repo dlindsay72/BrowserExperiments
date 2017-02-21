@@ -9,7 +9,17 @@
 import Cocoa
 import WebKit
 
-class ViewController: NSViewController, WKNavigationDelegate, NSGestureRecognizerDelegate {
+extension NSTouchBarItemIdentifier {
+    
+    static let navigation = NSTouchBarItemIdentifier("com.hackingwithswift.project4.navigation")
+    static let enterAddress = NSTouchBarItemIdentifier("com.hackingwithswift.project4.enterAddress")
+    static let sharingPicker = NSTouchBarItemIdentifier("com.hackingwithswift.project4.sharingPicker")
+    static let adjustGrid = NSTouchBarItemIdentifier("com.hackingwithswift.project4.adjustGrid")
+    static let adjustRows = NSTouchBarItemIdentifier("com.hackingwithswift.project4.adjustRows")
+    static let adjustCols = NSTouchBarItemIdentifier("com.hackingwithswift.project4.adjustCols")
+}
+
+class ViewController: NSViewController, WKNavigationDelegate, NSGestureRecognizerDelegate, NSTouchBarDelegate {
     
     var rows: NSStackView!
     var selectedWebView: WKWebView!
@@ -212,6 +222,55 @@ class ViewController: NSViewController, WKNavigationDelegate, NSGestureRecognize
         
         if let windowController = view.window?.windowController as? WindowController {
             windowController.addressEntry.stringValue = webView.url?.absoluteString ?? ""
+        }
+    }
+    
+    @available(OSX 10.12.2, *)
+    func touchBar(_ touchBar: NSTouchBar, makeItemForIdentifier identifier: NSTouchBarItemIdentifier) -> NSTouchBarItem? {
+        
+        switch identifier {
+        case NSTouchBarItemIdentifier.enterAddress:
+            let button = NSButton(title: "Enter a URL", target: self, action: #selector(selectedAddressEntry))
+            button.setContentHuggingPriority(10, for: .horizontal)
+            let customTouchBarItem = NSCustomTouchBarItem(identifier: identifier)
+            
+            customTouchBarItem.view = button
+            return customTouchBarItem
+        default:
+            return nil
+        }
+    }
+    
+    @available(OSX 10.12.2, *)
+    override func makeTouchBar() -> NSTouchBar? {
+        
+        //enable the Customize Touch Bar menu item
+        NSApp.isAutomaticCustomizeTouchBarMenuItemEnabled = true
+        
+        //create a Touch Bar with a unique identifier, making ViewController its delegate
+        let touchBar = NSTouchBar()
+        touchBar.customizationIdentifier = NSTouchBarCustomizationIdentifier("com.hackingwithswift.project4")
+        touchBar.delegate = self
+        
+        //set up some meaningful defaults
+        touchBar.defaultItemIdentifiers = [.navigation, .adjustGrid, .enterAddress, .sharingPicker]
+        
+        //make the address entry button sit in the center of the bar
+        touchBar.principalItemIdentifier = .enterAddress
+        
+        //allow the user to customize these four controls
+        touchBar.customizationAllowedItemIdentifiers = [.sharingPicker, .adjustGrid, .adjustCols, .adjustRows]
+        
+        //but don't let them take off the URL entry button
+        touchBar.customizationRequiredItemIdentifiers = [.enterAddress]
+        
+        return touchBar
+    }
+    
+    func selectedAddressEntry() {
+        
+        if let windowController = view.window?.windowController as? WindowController {
+            windowController.window?.makeFirstResponder(windowController.addressEntry)
         }
     }
 

@@ -18,5 +18,10 @@ class WindowController: NSWindowController {
         window?.titleVisibility = .hidden
         
     }
+    
+    override func cancelOperation(_ sender: Any?) {
+        
+        window?.makeFirstResponder(self.contentViewController)
+    }
 
 }
